@@ -1,0 +1,7 @@
+*.sw*
+*.un*
+*.log
+.vagrant*
+*.gz
+*.pyc
+*.db
