@@ -1,6 +1,8 @@
 #!/bin/bash
 ADMIN_PASSWORD=${ADMIN_PASSWORD:-docker}
 REGISTRY_NAME=${REGISTRY_NAME:-Docker Registry}
+SSL_CERT_PATH=${SSL_CERT_PATH:-}
+SSL_CERT_KEY_PATH=${SSL_CERT_KEY_PATH:-}
 
 # nginx config
 cat << EOF > /usr/local/openresty/nginx/conf/registry.conf
@@ -58,10 +60,7 @@ http {
           server localhost:5000;
         }
         server {
-            listen 443;
-            ssl on;
-            ssl_certificate /etc/registry.crt;
-            ssl_certificate_key /etc/registry.key;
+            listen 80;
             client_max_body_size 0;
             proxy_set_header Host \$http_host;
             proxy_set_header X-Forwarded-Host \$host;
@@ -94,6 +93,49 @@ http {
                 uwsgi_pass unix:/tmp/uwsgi-manage.sock;
             }
         }
+EOF
+if [ ! -z "$SSL_CERT_PATH" ]; then
+    cat << EOF >> /usr/local/openresty/nginx/conf/registry.conf
+        server {
+            listen 443;
+            ssl on;
+            ssl_certificate $SSL_CERT_PATH;
+            ssl_certificate_key $SSL_CERT_KEY_PATH;
+            client_max_body_size 0;
+            proxy_set_header Host \$http_host;
+            proxy_set_header X-Forwarded-Host \$host;
+            proxy_set_header X-Real-IP \$remote_addr;
+            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+            proxy_set_header X-Scheme \$scheme;
+            proxy_set_header Authorization  "";
+            location / {
+                auth_basic "$REGISTRY_NAME";
+                auth_basic_user_file /etc/registry.users;
+                proxy_pass http://registry;
+            }
+            location /v1/_ping {
+                auth_basic off;
+                proxy_pass http://registry;
+            }
+            location /v1/users {
+                auth_basic off;
+                proxy_pass http://registry;
+            }
+            location = /manage { rewrite ^ /manage/; }
+            location /manage/ { try_files \$uri @manage; }
+            location @manage {
+                auth_basic "$REGISTRY_NAME";
+                auth_basic_user_file /etc/registry.users;
+                proxy_redirect off;
+                include uwsgi_params;
+                uwsgi_param SCRIPT_NAME /manage;
+                uwsgi_modifier1 30;
+                uwsgi_pass unix:/tmp/uwsgi-manage.sock;
+            }
+        }
+EOF
+fi
+cat << EOF >> /usr/local/openresty/nginx/conf/registry.conf
 }
 EOF
 
