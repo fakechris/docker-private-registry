@@ -1,4 +1,4 @@
-from stackbrew/registry
+from stackbrew/registry:0.6.1
 maintainer Shipyard Project "http://shipyard-project.com"
 run apt-get update
 run apt-get -y upgrade
