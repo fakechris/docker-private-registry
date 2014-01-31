@@ -211,5 +211,7 @@ if [ ! -e "/etc/registry.users" ] ; then
     htpasswd -bc /etc/registry.users admin $ADMIN_PASSWORD
 fi
 
+# configure registry
+sh /docker-registry/setup-configs.sh
 # run supervisor
 supervisord -c /etc/supervisor/supervisor.conf -n
