@@ -3,6 +3,8 @@ ADMIN_PASSWORD=${ADMIN_PASSWORD:-docker}
 REGISTRY_NAME=${REGISTRY_NAME:-Docker Registry}
 SSL_CERT_PATH=${SSL_CERT_PATH:-}
 SSL_CERT_KEY_PATH=${SSL_CERT_KEY_PATH:-}
+CACHE_REDIS_PASSWORD=${CACHE_REDIS_PASSWORD:-docker}
+CACHE_LRU_REDIS_PASSWORD=${CACHE_REDIS_PASSWORD:-docker}
 
 # nginx config
 cat << EOF > /usr/local/openresty/nginx/conf/registry.conf
@@ -165,6 +167,14 @@ static-map = /static=/app/static
 module = wsgi:application
 EOF
 
+# redis config
+cat << EOF >> /etc/redis.conf
+daemonize no
+requirepass $CACHE_REDIS_PASSWORD
+maxmemory 2mb
+maxmemory-policy allkeys-lru
+EOF
+
 # supervisor config
 cat << EOF > /etc/supervisor/supervisor.conf
 [supervisord]
@@ -182,7 +192,7 @@ serverurl=unix:///var/run//supervisor.sock
 [program:redis]
 priority=05
 user=root
-command=/usr/bin/redis-server
+command=/usr/bin/redis-server /etc/redis.conf
 directory=/var/lib/redis
 autostart=true
 autorestart=true
@@ -191,7 +201,7 @@ stopsignal=QUIT
 [program:registry]
 priority=10
 user=root
-command=/usr/local/bin/uwsgi --ini /etc/registry.ini
+command=gunicorn --access-logfile - --debug --max-requests 5000 --graceful-timeout 3600 -t 3600 -k gevent -b 0.0.0.0:5000 -w 4 wsgi:application
 directory=/docker-registry
 autostart=true
 autorestart=true
