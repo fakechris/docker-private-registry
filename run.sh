@@ -179,6 +179,15 @@ supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
 [supervisorctl]
 serverurl=unix:///var/run//supervisor.sock
 
+[program:redis]
+priority=05
+user=root
+command=/usr/bin/redis-server
+directory=/var/lib/redis
+autostart=true
+autorestart=true
+stopsignal=QUIT
+
 [program:registry]
 priority=10
 user=root
@@ -212,6 +221,7 @@ if [ ! -e "/etc/registry.users" ] ; then
 fi
 
 # configure registry
-sh /docker-registry/setup-configs.sh
+cd /docker-registry
+bash setup-configs.sh
 # run supervisor
 supervisord -c /etc/supervisor/supervisor.conf -n
