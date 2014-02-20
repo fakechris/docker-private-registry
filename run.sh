@@ -144,19 +144,6 @@ cat << EOF >> /usr/local/openresty/nginx/conf/registry.conf
 }
 EOF
 
-# uwsgi config (registry)
-cat << EOF > /etc/registry.ini
-[uwsgi]
-chdir = /docker-registry
-http-socket = 0.0.0.0:5000
-workers = 8
-buffer-size = 32768
-master = true
-max-requests = 5000
-static-map = /static=/app/static
-module = wsgi:application
-EOF
-
 # uwsgi config (manage)
 cat << EOF > /etc/manage.ini
 [uwsgi]
