@@ -86,6 +86,10 @@ http {
                 auth_basic off;
                 proxy_pass http://registry;
             }
+            location /static {
+                alias /app/static;
+                expires 1d;
+            }
             location = /manage { rewrite ^ /manage/; }
             location /manage/ { try_files \$uri @manage; }
             location @manage {
@@ -125,6 +129,10 @@ if [ ! -z "$SSL_CERT_PATH" ]; then
             location /v1/users {
                 auth_basic off;
                 proxy_pass http://registry;
+            }
+            location /static {
+                alias /app/static;
+                expires 1d;
             }
             location = /manage { rewrite ^ /manage/; }
             location /manage/ { try_files \$uri @manage; }
