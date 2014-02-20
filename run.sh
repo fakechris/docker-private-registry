@@ -6,6 +6,9 @@ SSL_CERT_KEY_PATH=${SSL_CERT_KEY_PATH:-}
 CACHE_REDIS_PASSWORD=${REDIS_PASSWORD:-docker}
 CACHE_LRU_REDIS_PASSWORD=${REDIS_PASSWORD:-docker}
 
+export CACHE_REDIS_PASSWORD
+export CACHE_LRU_REDIS_PASSWORD
+
 # nginx config
 cat << EOF > /usr/local/openresty/nginx/conf/registry.conf
 user root;
