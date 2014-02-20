@@ -31,3 +31,10 @@ the password at run via environment variables (see below).
 * 443
 * 5000
 
+# Running on S3
+To run with Amazon S3 as the backing store, you will need the following environment variables:
+
+* `AWS_ACCESS_KEY_ID`: Your AWS Access Key ID (make sure it has S3 access)
+* `AWS_SECRET_KEY`: Your AWS Secret Key
+* `S3_BUCKET`: Your S3 bucket to store images
+* `SETTINGS_FLAVOR`: This must be set to `prod`
